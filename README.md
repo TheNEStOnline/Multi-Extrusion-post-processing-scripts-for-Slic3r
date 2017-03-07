@@ -25,8 +25,7 @@ See [Wiki](https://github.com/TheNEStOnline/Multi-Extrusion-post-processing-scri
 See [myColourChange](https://github.com/TheNEStOnline/Multi-Extrusion-post-processing-scripts-for-Slic3r/projects/1)
 
 ## Known Issues:
-- If skirt is added the script will detect an extra colour change.
-- For some reason, it is does not show up Slic3r frontend only in Repetier Host using Slic3r as slicer.
+See [Issues](https://github.com/TheNEStOnline/Multi-Extrusion-post-processing-scripts-for-Slic3r/issues)
 
 ## How to use
 In order to get the scripts working properly, I suggest creating print and printer settings in slic3r exclusively for use with those scripts, and modifying these settings as described below.
