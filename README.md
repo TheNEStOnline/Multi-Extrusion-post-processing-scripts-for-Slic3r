@@ -1,4 +1,5 @@
 # Multi-Extrusion post-processing scripts for Slic3r
+## Big issue for some reason it is no longer working in Slic3r frontend only in Repetier Host using Slic3r as slicer. Trying to find out why.
 useful post-processing scripts for Slic3r for adding wipe towers and other multi-extrusion features. Written in Perl.
 ![example g-code](https://raw.githubusercontent.com/TheNEStOnline/Multi-Extrusion-post-processing-scripts-for-Slic3r/6c7a91dbf7c16d14acc304833537346e233451eb/Example_Images/2_Color_Dice.png)
 ## Features:
