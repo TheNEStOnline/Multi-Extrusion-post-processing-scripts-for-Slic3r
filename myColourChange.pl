@@ -370,38 +370,69 @@ sub getSlic3r{ # Import Slic3r vars into Hash if there is a value per extruder t
 	}
 }
 
-sub getCalcPrc{ # Calc speeds that is based on a % of another speed and change % to a numeric value
-	foreach my $varKey (keys %slic3r ) {
-		if($slic3r{$varKey}=~/(\d*\.?\d*)%/) { # Change % to number
-			$slic3r{$varKey} = $1 / 100;
-			if($varKey eq "small_perimeter_speed") {
-				$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "external_perimeter_speed") {
-				$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "solid_infill_speed") {
-				$slic3r{$varKey} = $slic3r{'infill_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "top_solid_infill_speed") {
-				$slic3r{$varKey} = $slic3r{'infill_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "support_material_interface_speed") {
-				$slic3r{$varKey} = $slic3r{'support_material_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "first_layer_speed") {
-				$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
-			}
-			if($varKey eq "first_layer_extrusion_width") {
-				$slic3r{$varKey} = $slic3r{'extrusion_width'} * $slic3r{$varKey};
+sub getCalcPrc{ 
+	# If extrusion width set to zero change it to nozzle diameter
+	if($slic3r{'extrusion_width'} == 0) {
+		$slic3r{'extrusion_width'} = $slic3r{'nozzle_diameter'}[0];
+	}
+	
+	# If user has set a multiplier for extrusion_width.
+	if($slic3r{'extrusionWidthMultiplier'} and not $slic3r{'extrusion_width'}=~/(\d*\.?\d*)%/) {
+		$slic3r{'extrusion_width'} = $slic3r{'extrusion_width'} * $slic3r{'extrusionWidthMultiplier'};
+	}
+	
+	# Calc vars that is based on a % of another var and change % to a numeric value
+	my $run = 1;
+	while($run) {
+		$run = 0;
+		foreach my $varKey (keys %slic3r ) {
+			if($slic3r{$varKey}=~/(\d*\.?\d*)%/) { # Change % to number
+				$slic3r{$varKey} = $1 / 100;
+				if($varKey eq "extrusion_width") {
+					$slic3r{$varKey} = $slic3r{'layer_height'} * $slic3r{$varKey};
+					if($slic3r{'extrusionWidthMultiplier'}) {
+						$slic3r{'extrusion_width'} = $slic3r{'extrusion_width'} * $slic3r{'extrusionWidthMultiplier'};
+					}
+				}
+				if($varKey eq "small_perimeter_speed") {
+					$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "external_perimeter_speed") {
+					$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "solid_infill_speed") {
+					$slic3r{$varKey} = $slic3r{'infill_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "top_solid_infill_speed") {
+					$slic3r{$varKey} = $slic3r{'infill_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "support_material_interface_speed") {
+					$slic3r{$varKey} = $slic3r{'support_material_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "first_layer_speed") {
+					$slic3r{$varKey} = $slic3r{'perimeter_speed'} * $slic3r{$varKey};
+				}
+				if($varKey eq "first_layer_extrusion_width") {
+					if($slic3r{'extrusion_width'}=~/(\d*\.?\d*)%/) {
+						$run = 1;
+					}else{
+						$slic3r{$varKey} = $slic3r{'extrusion_width'} * $slic3r{$varKey};
+					}
+				}
 			}
 		}
 	}
+	
+	# If first layer extrusion width set to zero change it to default extrusion width
+	if($slic3r{'first_layer_extrusion_width'} == 0) {
+		$slic3r{'first_layer_extrusion_width'} = $slic3r{'extrusion_width'};
+	}
+	
 }
 
 sub getRectlinearMove{ # Get Rectilinear move distances along side of rectangle based on % of infill. Remember to divide by 2 on the first line.
 	my $infillPrc = $_[0];
-	my $extrutionWidth = $slic3r{'nozzle_diameter'}[$currTool];
+	my $extrutionWidth = $slic3r{'extrusion_width'};
 	if($currLayer == 1) {
 		$extrutionWidth = $slic3r{'first_layer_extrusion_width'};
 	}
@@ -609,7 +640,7 @@ sub makeBrim{
 		$x = $slic3r{'wipeTowerX'} - $numOfLines * $slic3r{'first_layer_extrusion_width'};
 		$y = $slic3r{'wipeTowerY'} - $numOfLines * $slic3r{'first_layer_extrusion_width'};
 		if($numOfTower > 1) {
-			$sizeX = ($slic3r{'wipeTowerSize'} * $numOfTower + $slic3r{'nozzle_diameter'}[$currTool]) + $numOfLines * $slic3r{'first_layer_extrusion_width'} * 2;
+			$sizeX = ($slic3r{'wipeTowerSize'} * $numOfTower + $slic3r{'extrusion_width'}) + $numOfLines * $slic3r{'first_layer_extrusion_width'} * 2;
 		} else {
 			$sizeX = $slic3r{'wipeTowerSize'} + $numOfLines * $slic3r{'first_layer_extrusion_width'} * 2;
 		}
@@ -661,7 +692,7 @@ sub extrusionXYXYL{ # calculate the extrusion length for a move from (x1,y1) to 
 	if($currLayer==1) {
 		$eDist=$lineLength*$slic3r{'first_layer_extrusion_width'}/$filamentArea;
 	} else {
-		$eDist=$lineLength*$slic3r{'nozzle_diameter'}[$currTool]/$filamentArea;
+		$eDist=$lineLength*$slic3r{'extrusion_width'}/$filamentArea;
 	}
 	$eDist*=$l;
 	if($currLayer==1){
@@ -757,11 +788,11 @@ sub extrudeToXYFL{ #Extrude to x,y from current x,y with f feed rate and l layer
 
 sub toolChange{
 	my $gCode = "";
-	my $startX = $slic3r{'wipeTowerX'} + $slic3r{'wipeTowerSize'} * $toolChangeNum + $slic3r{'nozzle_diameter'}[$currTool] * $toolChangeNum;
+	my $startX = $slic3r{'wipeTowerX'} + $slic3r{'wipeTowerSize'} * $toolChangeNum + $slic3r{'extrusion_width'} * $toolChangeNum;
 	my $startY = $slic3r{'wipeTowerY'};
-	my $startXrect = $startX+($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}));
-	my $startYrect = $startY+($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}));
-	my $rectSize = $slic3r{'wipeTowerSize'}-($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}) * 2);
+	my $startXrect = $startX+($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}));
+	my $startYrect = $startY+($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}));
+	my $rectSize = $slic3r{'wipeTowerSize'}-($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}) * 2);
 	my $eLength = 0;
 	
 	$gCode.= comment("tool change in <- Script");
@@ -829,11 +860,11 @@ sub toolChange{
 
 sub whipeTower{
 	my $gCode = "";
-	my $startX = $slic3r{'wipeTowerX'} + $slic3r{'wipeTowerSize'} * $toolChangeNum + $slic3r{'nozzle_diameter'}[$currTool] * $toolChangeNum;
+	my $startX = $slic3r{'wipeTowerX'} + $slic3r{'wipeTowerSize'} * $toolChangeNum + $slic3r{'extrusion_width'} * $toolChangeNum;
 	my $startY = $slic3r{'wipeTowerY'};
-	my $startXrect = $startX+($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}));
-	my $startYrect = $startY+($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}));
-	my $rectSize = $slic3r{'wipeTowerSize'}-($slic3r{'nozzle_diameter'}[$currTool] * (1-$slic3r{'infill_overlap'}) * 2);
+	my $startXrect = $startX+($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}));
+	my $startYrect = $startY+($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}));
+	my $rectSize = $slic3r{'wipeTowerSize'}-($slic3r{'extrusion_width'} * (1-$slic3r{'infill_overlap'}) * 2);
 	
 	$gCode.= comment("Print tower witout tool change");
 	$gCode.= extrudeEF(-$slic3r{'retract_length'}[$currTool], $slic3r{'retract_speed'}[$currTool] * 60);
