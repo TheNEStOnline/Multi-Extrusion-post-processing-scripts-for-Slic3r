@@ -28,7 +28,7 @@ See [myColourChange](https://github.com/TheNEStOnline/Multi-Extrusion-post-proce
 See [Issues](https://github.com/TheNEStOnline/Multi-Extrusion-post-processing-scripts-for-Slic3r/issues)
 
 ## How to use
-In order to get the scripts working properly, I suggest creating print and printer settings in slic3r exclusively for use with those scripts, and modifying these settings as described below.
+In order to get the scripts working properly, I suggest creating print and printer settings in slic3r exclusively for use with this scripts, and modifying these settings as described below.
 
 See [Wiki](https://github.com/TheNEStOnline/Multi-Extrusion-post-processing-scripts-for-Slic3r/wiki)
 
